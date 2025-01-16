@@ -2,6 +2,7 @@ package v2rayhttp
 
 import (
 	"context"
+	"github.com/sagernet/sing/common/bufio/deadline"
 	"net"
 	"net/http"
 	"os"
@@ -134,7 +135,7 @@ func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 			NewHTTPConn(request.Body, writer),
 			writer.(http.Flusher),
 		})
-		s.handler.NewConnection(request.Context(), conn, metadata)
+		s.handler.NewConnection(request.Context(), deadline.NewConn(conn), metadata)
 		conn.CloseWrapper()
 	}
 }
