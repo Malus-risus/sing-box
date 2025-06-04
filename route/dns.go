@@ -3,6 +3,7 @@ package route
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"time"
 
@@ -73,6 +74,7 @@ func exchangeDNSPacket(ctx context.Context, router adapter.DNSRouter, conn N.Pac
 	err := message.Unpack(buffer.Bytes())
 	buffer.Release()
 	if err != nil {
+		fmt.Println("buffer was:", string(buffer.Bytes()))
 		return E.Cause(err, "unpack request")
 	}
 	response, err := router.Exchange(adapter.WithContext(ctx, &metadata), &message, adapter.DNSQueryOptions{})
