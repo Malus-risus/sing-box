@@ -2,6 +2,7 @@ package trojan
 
 import (
 	"context"
+	"github.com/sagernet/sing/common/rw"
 	"net"
 	"os"
 
@@ -168,7 +169,15 @@ func (h *Inbound) NewConnectionEx(ctx context.Context, conn net.Conn, metadata a
 		}
 		conn = tlsConn
 	}
-	err := h.service.NewConnection(adapter.WithContext(ctx, &metadata), conn, metadata.Source, onClose)
+
+	origin, err := rw.ReadBytes(conn, 4)
+	if err != nil {
+		h.logger.ErrorContext(ctx, E.Cause(err, "process connection from ", metadata.Source, ": read origin"))
+		return
+	}
+	metadata.OriginalSource = M.Socksaddr{Addr: M.AddrFromIP(origin)}
+
+	err = h.service.NewConnection(adapter.WithContext(ctx, &metadata), conn, metadata.Source, onClose)
 	if err != nil {
 		N.CloseOnHandshakeFailure(conn, onClose, err)
 		h.logger.ErrorContext(ctx, E.Cause(err, "process connection from ", metadata.Source))
